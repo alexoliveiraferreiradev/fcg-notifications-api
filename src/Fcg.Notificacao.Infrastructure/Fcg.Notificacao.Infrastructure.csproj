@@ -11,8 +11,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.17" />
 	</ItemGroup>
 
+
 	<ItemGroup>
-    <ProjectReference Include="..\Fcg.Notificacao.Domain\Fcg.Notificacao.Domain.csproj" />
-  </ItemGroup>
+	  <ProjectReference Include="..\Fcg.Notificacao.Application\Fcg.Notificacao.Application.csproj" />
+	</ItemGroup>
 
 </Project>

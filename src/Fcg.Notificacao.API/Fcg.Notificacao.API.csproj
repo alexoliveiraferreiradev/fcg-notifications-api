@@ -8,12 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.2" />
+    <PackageReference Include="Fcg.Core.WebApi" Version="1.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fcg.Notificacao.Application\Fcg.Notificacao.Application.csproj" />
-    <ProjectReference Include="..\Fcg.Notificacao.Domain\Fcg.Notificacao.Domain.csproj" />
     <ProjectReference Include="..\Fcg.Notificacao.Infrastructure\Fcg.Notificacao.Infrastructure.csproj" />
   </ItemGroup>
 
