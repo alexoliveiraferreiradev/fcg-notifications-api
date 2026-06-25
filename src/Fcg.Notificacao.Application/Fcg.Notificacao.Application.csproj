@@ -10,4 +10,8 @@
     <PackageReference Include="MassTransit.Abstractions" Version="9.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Fcg.Notificacao.Domain\Fcg.Notificacao.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
