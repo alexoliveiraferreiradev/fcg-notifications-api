@@ -1,4 +1,4 @@
-﻿using Fcg.MessageContracts;
+﻿using Fcg.Core.Abstractions.MessageContracts;
 using Fcg.Notificacao.Domain.Common.Interfaces;
 using MassTransit;
 
@@ -16,7 +16,7 @@ namespace Fcg.Notificacao.API.Consumers
         public async Task Consume(ConsumeContext<UserCreatedEvent> context)
         {
             var mensagem = context.Message;
-            await _emailService.SendWelcomeEmailAsync(mensagem.UserId, mensagem.Nome, mensagem.Email);
+            await _emailService.SendWelcomeEmailAsync(mensagem.UserId, mensagem.Name, mensagem.Email);
         }
     }
 }
