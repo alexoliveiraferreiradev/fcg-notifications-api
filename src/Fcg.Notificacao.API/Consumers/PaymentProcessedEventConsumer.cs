@@ -4,11 +4,11 @@ using MassTransit;
 
 namespace Fcg.Notificacao.API.Consumers
 {
-    public class PaymentProcessedEventConsumer : IConsumer<OrderApprovedEvent>
+    public class OrderApprovedEventConsumer : IConsumer<OrderApprovedEvent>
     {
         private readonly IEmailService _fakeEmailService;
 
-        public PaymentProcessedEventConsumer(IEmailService fakeEmailService)
+        public OrderApprovedEventConsumer(IEmailService fakeEmailService)
         {
             _fakeEmailService = fakeEmailService;
         }
