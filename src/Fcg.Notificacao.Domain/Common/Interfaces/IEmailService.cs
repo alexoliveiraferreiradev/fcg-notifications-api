@@ -3,5 +3,6 @@
     public interface IEmailService
     {
         Task SendWelcomeEmailAsync(Guid UsuarioId, string Nome, string Email);
+        Task SendApprovedPaymentEmail(Guid UsuarioId,Guid OrderId, string NomeJogo, string Email);
     }
 }
