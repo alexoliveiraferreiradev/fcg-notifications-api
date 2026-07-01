@@ -27,6 +27,11 @@ builder.Services.AddMassTransit(x =>
             e.ConfigureConsumer<PaymentProcessedEventConsumer>(context);
         });
 
+        cfg.ReceiveEndpoint("notification-user-created-queue", e =>
+        {
+            e.ConfigureConsumer<UserCreatedEventConsumer>(context);
+        });
+
     });
 
     
