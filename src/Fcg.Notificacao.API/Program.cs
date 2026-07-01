@@ -1,3 +1,4 @@
+using Fcg.Notificacao.API.Consumers;
 using Fcg.Notificacao.Application.Common.Interfaces;
 using Fcg.Notificacao.Application.Ports;
 using Fcg.Notificacao.Application.UseCase.ApprovedPaymentEmail;
@@ -21,9 +22,14 @@ builder.Services.AddMassTransit(x =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
 
-        cfg.ConfigureEndpoints(context);
+        cfg.ReceiveEndpoint("notification-payment-processed-queue", e =>
+        {
+            e.ConfigureConsumer<PaymentProcessedEventConsumer>(context);
+        });
 
     });
+
+    
 
 
 });
