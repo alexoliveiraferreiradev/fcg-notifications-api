@@ -72,6 +72,10 @@ ScaffoldingReadMe.txt
 # StyleCop
 StyleCopReport.xml
 
+# Logs do sistema
+logs/
+*.log
+
 # Files built by Visual Studio
 *_i.c
 *_p.c
