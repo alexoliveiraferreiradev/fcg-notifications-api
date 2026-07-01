@@ -1,6 +1,13 @@
-using Fcg.Notificacao.Domain.Common.Interfaces;
+using Fcg.Notificacao.API.Consumers;
+using Fcg.Notificacao.Application.Common.Interfaces;
+using Fcg.Notificacao.Application.Ports;
+using Fcg.Notificacao.Application.UseCase.ApprovedPaymentEmail;
+using Fcg.Notificacao.Application.UseCase.WelcomeEmail;
+using Fcg.Notificacao.Infrastructure.Caching;
+using Fcg.Notificacao.Infrastructure.Idempotency;
 using Fcg.Notificacao.Infrastructure.Services;
 using MassTransit;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,14 +22,41 @@ builder.Services.AddMassTransit(x =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
 
-        cfg.ConfigureEndpoints(context);
+        cfg.ReceiveEndpoint("notification-payment-processed-queue", e =>
+        {
+            e.ConfigureConsumer<PaymentProcessedEventConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("notification-user-created-queue", e =>
+        {
+            e.ConfigureConsumer<UserCreatedEventConsumer>(context);
+        });
 
     });
+
+    
 
 
 });
 
-builder.Services.AddScoped<IEmailService, FakeEmailService>();
+builder.Services.AddScoped<SendPaymentApprovedEmailUseCase>();
+builder.Services.AddScoped<SendWelcomeEmailUseCase>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IIdempotencyService, RedisIdempotencyService>();
+var redisSection = builder.Configuration.GetSection("Redis");
+builder.Services.Configure<RedisOptions>(redisSection);
+var redisConfig = redisSection.Get<RedisOptions>();
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = ConfigurationOptions.Parse(redisConfig.Configuration, true);
+    return ConnectionMultiplexer.Connect(configuration);
+});
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConfig.Configuration;
+    options.InstanceName = redisConfig.InstanceName;
+});
+
 
 var app = builder.Build();
 

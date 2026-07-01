@@ -1,22 +1,27 @@
 ﻿using Fcg.Core.Abstractions.MessageContracts;
-using Fcg.Notificacao.Domain.Common.Interfaces;
+using Fcg.Notificacao.Application.UseCase.WelcomeEmail;
 using MassTransit;
 
 namespace Fcg.Notificacao.API.Consumers
 {
     public class UserCreatedEventConsumer : IConsumer<UserCreatedEvent>
     {
-        private readonly IEmailService _emailService;
+        private readonly SendWelcomeEmailUseCase _useCase;
 
-        public UserCreatedEventConsumer(IEmailService emailService)
+        public UserCreatedEventConsumer(SendWelcomeEmailUseCase useCase)
         {
-            _emailService = emailService;
+            _useCase = useCase; 
         }
 
         public async Task Consume(ConsumeContext<UserCreatedEvent> context)
         {
             var mensagem = context.Message;
-            await _emailService.SendWelcomeEmailAsync(mensagem.UserId, mensagem.Name, mensagem.Email);
+
+            var command = new SendWelcomeEmailCommand(
+                EventId: context.MessageId ?? Guid.NewGuid(),
+                mensagem.UserId, mensagem.Email, mensagem.Name);
+
+            await _useCase.ExecuteAsync(command,context.CancellationToken);   
         }
     }
 }
