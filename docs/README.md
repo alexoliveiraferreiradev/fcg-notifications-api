@@ -1,4 +1,4 @@
-# fcg-notifications-api
+# Fiap Cloud Games (FCG) - Notificação API
 
 Microsserviço de suporte focado na comunicação com o cliente através de uma arquitetura orientada a eventos. O serviço escuta eventos de diversos domínios da aplicação para processar o envio simulado de e-mails, como mensagens de boas-vindas e confirmações de aprovação de pagamento.
 
