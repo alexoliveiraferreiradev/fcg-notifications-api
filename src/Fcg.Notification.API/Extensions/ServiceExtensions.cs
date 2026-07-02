@@ -58,7 +58,10 @@ namespace Fcg.Notification.API.Extensions
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
-
+                    cfg.UseMessageRetry(r =>
+                    {
+                        r.Interval(3, TimeSpan.FromSeconds(5));
+                    });
                     cfg.ReceiveEndpoint("notifications-user-created", e =>
                     {
                         e.ConfigureConsumer<UserCreatedEventConsumer>(context);
