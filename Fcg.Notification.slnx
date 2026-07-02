@@ -1,0 +1,13 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Fcg.Notification.API/Fcg.Notification.API.csproj" Id="a5b27e12-6623-4e22-a0a3-b5225c8db41b" />
+    <Project Path="src/Fcg.Notification.Application/Fcg.Notification.Application.csproj" Id="6ca090ff-8ac9-4973-992e-88a068f4c4f7" />
+    <Project Path="src/Fcg.Notification.Domain/Fcg.Notification.Domain.csproj" Id="36e7d4f1-de97-4861-9a30-2e5c41d38e42" />
+    <Project Path="src/Fcg.Notification.Infrastructure/Fcg.Notification.Infrastructure.csproj" Id="aacd8d16-bf40-44d7-be23-5515088070c9" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Fcg.Notification.Application.Tests/Fcg.Notification.Application.Tests.csproj" Id="2ecee78a-e6da-4436-80b3-b9b73ad52648" />
+    <Project Path="tests/Fcg.Notification.Domain.Tests/Fcg.Notification.Domain.Tests.csproj" Id="e0983509-e2c1-4c72-ad4d-d5721b9f82af" />
+    <Project Path="tests/Fcg.Notification.Infrastructure.Integration/Fcg.Notification.Infrastructure.Integration.csproj" Id="276913b1-1559-4e61-a27f-0119dbad3742" />
+  </Folder>
+</Solution>
