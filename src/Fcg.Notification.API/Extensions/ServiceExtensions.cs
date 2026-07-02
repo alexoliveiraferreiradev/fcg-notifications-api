@@ -14,13 +14,22 @@ namespace Fcg.Notification.API.Extensions
 {
     public static class ServiceExtensions
     {
-        public static WebApplicationBuilder HealthCheckExtension(this WebApplicationBuilder builder)
+        public static WebApplicationBuilder AddServicesExtensions(this WebApplicationBuilder builder)
+        {
+            builder.SerilogExtension()
+                .HealthCheckExtension()
+                .MassTransitExtension()
+                .RedisExtension()
+                .DependecyInjectionExtension();
+            return builder;
+        }
+        private static WebApplicationBuilder HealthCheckExtension(this WebApplicationBuilder builder)
         {
             builder.Services.AddHealthChecks().AddRedis(builder.Configuration.GetConnectionString("Redis"),
             name: "redis-healthcheck");
             return builder;
         }
-        public static WebApplicationBuilder SerilogExtension(this WebApplicationBuilder builder)
+        private static WebApplicationBuilder SerilogExtension(this WebApplicationBuilder builder)
         {
             builder.Host.UseSerilog((context, configuration) =>
             {
@@ -29,7 +38,7 @@ namespace Fcg.Notification.API.Extensions
 
             return builder;
         }
-        public static WebApplicationBuilder DependecyInjectionExtension(this WebApplicationBuilder builder)
+        private static WebApplicationBuilder DependecyInjectionExtension(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<SendPaymentApprovedEmailUseCase>();
             builder.Services.AddScoped<SendWelcomeEmailUseCase>();
@@ -37,7 +46,7 @@ namespace Fcg.Notification.API.Extensions
             builder.Services.AddScoped<IIdempotencyService, RedisIdempotencyService>();
             return builder;
         }
-        public static WebApplicationBuilder MassTransitExtension(this WebApplicationBuilder builder)
+        private static WebApplicationBuilder MassTransitExtension(this WebApplicationBuilder builder)
         {
 
             builder.Services.AddMassTransit(x =>
@@ -63,7 +72,7 @@ namespace Fcg.Notification.API.Extensions
             });
             return builder;
         }
-        public static WebApplicationBuilder RedisExtension(this WebApplicationBuilder builder)
+        private static WebApplicationBuilder RedisExtension(this WebApplicationBuilder builder)
         {
             var redisSection = builder.Configuration.GetSection("Redis");
             builder.Services.Configure<RedisOptions>(redisSection);

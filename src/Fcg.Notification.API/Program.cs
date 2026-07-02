@@ -4,12 +4,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.SerilogExtension()
-    .HealthCheckExtension()
-    .DependecyInjectionExtension()
-    .MassTransitExtension()
-    .RedisExtension();
-
+builder.AddServicesExtensions();    
 
 var app = builder.Build();
 app.MapHealthChecks("/health/liveness", new HealthCheckOptions
