@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServicesExtensions();    
 
 var app = builder.Build();
+app.UseSerilogRequestLogging(); 
 app.MapHealthChecks("/health/liveness", new HealthCheckOptions
 {
     Predicate = _ => false
