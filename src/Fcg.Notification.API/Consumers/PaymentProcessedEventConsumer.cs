@@ -1,4 +1,4 @@
-﻿using Fcg.Core.Abstractions.Enum;
+using Fcg.Core.Abstractions.Enum;
 using Fcg.Core.Abstractions.MessageContracts;
 using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
 using MassTransit;
@@ -22,8 +22,8 @@ namespace Fcg.Notification.API.Consumers
                 return;
 
             var command = new SendPaymentApprovedEmailCommand(context.MessageId ?? Guid.NewGuid(),UsuarioId: mensagem.UserId,
-                OrderId: mensagem.OrderId, NomeUsuario: mensagem.NomeUsuario, Email: mensagem.EmailUsuario,
-                DataAquisicao: mensagem.CreatedAt);
+                OrderId: mensagem.OrderId, UserName: mensagem.NomeUsuario, Email: mensagem.EmailUsuario,
+                CreatedAt: mensagem.CreatedAt);
 
             await _useCase.ExecuteAsync(command,context.CancellationToken);
         }
