@@ -1,34 +1,37 @@
 ﻿using Fcg.Notification.Application.Ports;
 using Fcg.Notification.Infrastructure.Caching;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace Fcg.Notification.Infrastructure.Idempotency
 {
     public class RedisIdempotencyService : IIdempotencyService
     {
-        private readonly IDistributedCache _cache;
+        private readonly IConnectionMultiplexer _redis;
         private readonly RedisOptions _redisOptions;
         
-        public RedisIdempotencyService(IDistributedCache cache, IOptions<RedisOptions> redisOptions)
+        public RedisIdempotencyService(IConnectionMultiplexer redis, IOptions<RedisOptions> redisOptions)
         {
-           _cache = cache;
+           _redis = redis;
            _redisOptions = redisOptions.Value;
         }
-        public async Task<bool> HasBeenProcessedAsync(Guid eventId)
+
+        public async Task ReleaseAsync(Guid eventId)
         {
-            var cachedValue = await _cache.GetStringAsync(eventId.ToString());
-            return !string.IsNullOrEmpty(cachedValue);
+            var db = _redis.GetDatabase();
+            var key = $"idempotency:notification:{eventId}";
+            await db.KeyDeleteAsync(key);
         }
 
-        public async Task MarkAsProcessedAsync(Guid eventId)
+        public async Task<bool> TryProcessAsync(Guid eventId)
         {
-            var options = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(_redisOptions.ExpirationInDays)
-            };
+            var db = _redis.GetDatabase();
+            var key = $"idempotency:notification:{eventId}";
+            var expiry = TimeSpan.FromDays(_redisOptions.ExpirationInDays);
 
-            await _cache.SetStringAsync(eventId.ToString(), "processed", options);
+            bool isAcquired = await db.StringSetAsync(key, "processing_or_processed", expiry, When.NotExists);
+
+            return isAcquired;
         }
     }
 }
