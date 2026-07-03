@@ -18,7 +18,7 @@ namespace Fcg.Notification.Domain.Tests.ValueObject
             var emailAddress = EmailAddress.Create(emailValido);
 
             // Assert
-            emailAddress.Value.Should().Be(emailValido);
+            emailAddress.Address.Should().Be(emailValido);
         }
 
         [Theory]

@@ -7,16 +7,16 @@ namespace Fcg.Notification.Domain.ValueObject
 {
     public record EmailAddress
     {
-        public string Value { get; }
+        public string Address { get; }
 
-        private EmailAddress(string value) => Value = value;
+        private EmailAddress(string value) => Address = value;
 
         public static EmailAddress Create(string value)
         {
             if (string.IsNullOrEmpty(value))
-                throw new DomainException(MensagensDominio.EmailObrigatorio);
+                throw new DomainException(DomainMessages.EmailRequired);
 
-            AssertionConcern.AssertArgumentEmailFormat(value, MensagensDominio.EmailInvalido);
+            AssertionConcern.AssertArgumentEmailFormat(value, DomainMessages.EmailInvalid);
             return new EmailAddress(value.ToLowerInvariant());
         }
                 

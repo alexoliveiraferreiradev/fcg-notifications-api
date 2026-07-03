@@ -8,7 +8,6 @@ namespace Fcg.Notification.Domain.Entities
         public Guid Id { get; private set; }
         public EmailAddress Recipient { get; private set; }
         public NotificationType Type { get; private set; }
-        public NotificationStatus Status { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? SendAt { get; private set; }
         public string? FailureReason { get; private set; }
@@ -18,26 +17,22 @@ namespace Fcg.Notification.Domain.Entities
             Id = Guid.NewGuid();
             Recipient = recipient;
             Type = type;
-            Status = NotificationStatus.Pending;
-            CreatedAt = DateTime.UtcNow;   
+            CreatedAt = DateTime.UtcNow;
         }
 
-        public void MarkAsSent()
+        public (string Subject, string Body) GenerateWelcomeContent(string userName)
         {
-            if (Status == NotificationStatus.Sent)
-                return;
-
-            Status = NotificationStatus.Sent;
-            SendAt = DateTime.UtcNow;
-            FailureReason = null;
+            return (
+            "Bem-vindo à FIAP Cloud Games!",
+            $"Olá {userName}, a sua conta foi criada com sucesso."
+            );
         }
-
-        public void MarkAsFailure(string reason)
+        public (string Subject, string Body) GenerateOrderConfirmationContent(Guid orderId, string userName, DateTime date)
         {
-            Status = NotificationStatus.Failed;
-            FailureReason = reason;
+            return (
+                $"Pagamento aprovado com sucesso para o pedido {orderId}!",
+                $"Olá {userName}, o seu pagamento foi aprovado com sucesso. ID do Usuário: {Recipient.Address} | Data Aquisição: {date}"
+            );
         }
-
-
     }
 }
