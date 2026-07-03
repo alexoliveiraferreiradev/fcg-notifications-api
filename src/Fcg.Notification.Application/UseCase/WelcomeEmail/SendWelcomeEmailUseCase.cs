@@ -1,9 +1,7 @@
 using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
-using Fcg.Notification.Domain.Entities;
 using Fcg.Notification.Domain.Enum;
 using Fcg.Notification.Domain.ValueObject;
-using System.Threading;
 
 namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 {
@@ -18,29 +16,26 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
             _idempotencyService = idempotencyService;
         }
 
-        public async Task ExecuteAsync(SendWelcomeEmailCommand command,CancellationToken cancellationToken)
+        public async Task ExecuteAsync(SendWelcomeEmailCommand command, CancellationToken cancellationToken)
         {
-            if (await _idempotencyService.HasBeenProcessedAsync(command.EventId))
+            if (!await _idempotencyService.TryProcessAsync(command.EventId))
                 return;
 
+            try
+            {
 
             var emailRecipient = EmailAddress.Create(command.Email);
             var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
 
-            try
-            {
-                var subject = "Bem-vindo à FIAP Cloud Games!";
-                var body = $"Olá {command.UserName}, a sua conta foi criada com sucesso.";
+            var (subject, body) = notification.GenerateWelcomeContent(command.UserName);
+         
+            await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
 
-                await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
-
-                notification.MarkAsSent();
-
-                await _idempotencyService.MarkAsProcessedAsync(command.EventId);
             }
-            catch (Exception ex)
+            catch
             {
-                notification.MarkAsFailure(ex.Message);
+                await _idempotencyService.ReleaseAsync(command.EventId);
+
                 throw;
             }
         }

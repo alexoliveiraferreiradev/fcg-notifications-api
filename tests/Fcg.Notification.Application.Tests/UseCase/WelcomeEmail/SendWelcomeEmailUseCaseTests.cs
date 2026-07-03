@@ -33,14 +33,15 @@ namespace Fcg.Notification.Application.Tests.UseCase.WelcomeEmail
         {
             // Arrange
             var command = new SendWelcomeEmailCommand(Guid.NewGuid(), Guid.NewGuid(), "teste@teste.com", "Test");
-            _idempotencyServiceMock.Setup(s => s.HasBeenProcessedAsync(command.EventId)).ReturnsAsync(true);
+            _idempotencyServiceMock.Setup(s => s.TryProcessAsync(command.EventId)).ReturnsAsync(false);
 
             // Act
             await _useCase.ExecuteAsync(command, CancellationToken.None);
 
             // Assert
             _emailServiceMock.Verify(e => e.SendEmailAsync(It.IsAny<EmailAddress>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-            _idempotencyServiceMock.Verify(s => s.MarkAsProcessedAsync(It.IsAny<Guid>()), Times.Never);
+            _idempotencyServiceMock.Verify(s => s.TryProcessAsync(It.IsAny<Guid>()), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.ReleaseAsync(command.EventId), Times.Never);
         }
 
         [Fact]
@@ -48,19 +49,20 @@ namespace Fcg.Notification.Application.Tests.UseCase.WelcomeEmail
         {
             // Arrange
             var command = new SendWelcomeEmailCommand(Guid.NewGuid(), Guid.NewGuid(), "teste@teste.com", "Joao");
-            _idempotencyServiceMock.Setup(s => s.HasBeenProcessedAsync(command.EventId)).ReturnsAsync(false);
+            _idempotencyServiceMock.Setup(s => s.TryProcessAsync(command.EventId)).ReturnsAsync(true);
 
             // Act
             await _useCase.ExecuteAsync(command, CancellationToken.None);
 
             // Assert
             _emailServiceMock.Verify(e => e.SendEmailAsync(
-                It.Is<EmailAddress>(addr => addr.Value == command.Email), 
+                It.Is<EmailAddress>(addr => addr.Address == command.Email), 
                 It.IsAny<string>(), 
                 It.IsAny<string>(), 
                 It.IsAny<CancellationToken>()), Times.Once);
                 
-            _idempotencyServiceMock.Verify(s => s.MarkAsProcessedAsync(command.EventId), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.TryProcessAsync(command.EventId), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.ReleaseAsync(command.EventId), Times.Never);
         }
 
         [Fact]
@@ -68,7 +70,7 @@ namespace Fcg.Notification.Application.Tests.UseCase.WelcomeEmail
         {
             // Arrange
             var command = new SendWelcomeEmailCommand(Guid.NewGuid(), Guid.NewGuid(), "teste@teste.com", "Joao");
-            _idempotencyServiceMock.Setup(s => s.HasBeenProcessedAsync(command.EventId)).ReturnsAsync(false);
+            _idempotencyServiceMock.Setup(s => s.TryProcessAsync(command.EventId)).ReturnsAsync(true);
             
             _emailServiceMock.Setup(e => e.SendEmailAsync(It.IsAny<EmailAddress>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("SMTP Timeout"));
@@ -78,7 +80,8 @@ namespace Fcg.Notification.Application.Tests.UseCase.WelcomeEmail
 
             // Assert
             await act.Should().ThrowAsync<Exception>().WithMessage("SMTP Timeout");
-            _idempotencyServiceMock.Verify(s => s.MarkAsProcessedAsync(It.IsAny<Guid>()), Times.Never);
+            _idempotencyServiceMock.Verify(s => s.TryProcessAsync(It.IsAny<Guid>()), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.ReleaseAsync(command.EventId), Times.Once);
         }
     }
 }

@@ -4,10 +4,6 @@ using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
 using Fcg.Notification.Domain.ValueObject;
 using FluentAssertions;
 using Moq;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Fcg.Notification.Application.Tests.UseCase.ApprovedPaymentEmail
 {
@@ -33,14 +29,15 @@ namespace Fcg.Notification.Application.Tests.UseCase.ApprovedPaymentEmail
         {
             // Arrange
             var command = new SendPaymentApprovedEmailCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Teste", "teste@teste.com", DateTime.UtcNow);
-            _idempotencyServiceMock.Setup(s => s.HasBeenProcessedAsync(command.EventId)).ReturnsAsync(true);
+            _idempotencyServiceMock.Setup(s => s.TryProcessAsync(command.EventId)).ReturnsAsync(false);
 
             // Act
             await _useCase.ExecuteAsync(command, CancellationToken.None);
 
             // Assert
             _emailServiceMock.Verify(e => e.SendEmailAsync(It.IsAny<EmailAddress>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-            _idempotencyServiceMock.Verify(s => s.MarkAsProcessedAsync(It.IsAny<Guid>()), Times.Never);
+            _idempotencyServiceMock.Verify(s => s.TryProcessAsync(command.EventId), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.ReleaseAsync(command.EventId), Times.Never);
         }
 
         [Fact]
@@ -48,19 +45,20 @@ namespace Fcg.Notification.Application.Tests.UseCase.ApprovedPaymentEmail
         {
             // Arrange
             var command = new SendPaymentApprovedEmailCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Teste", "teste@teste.com", DateTime.UtcNow);
-            _idempotencyServiceMock.Setup(s => s.HasBeenProcessedAsync(command.EventId)).ReturnsAsync(false);
+            _idempotencyServiceMock.Setup(s => s.TryProcessAsync(command.EventId)).ReturnsAsync(true);
 
             // Act
             await _useCase.ExecuteAsync(command, CancellationToken.None);
 
             // Assert
             _emailServiceMock.Verify(e => e.SendEmailAsync(
-                It.Is<EmailAddress>(addr => addr.Value == command.Email), 
+                It.Is<EmailAddress>(addr => addr.Address == command.Email), 
                 It.Is<string>(s => s.Contains(command.OrderId.ToString())), 
                 It.IsAny<string>(), 
                 It.IsAny<CancellationToken>()), Times.Once);
                 
-            _idempotencyServiceMock.Verify(s => s.MarkAsProcessedAsync(command.EventId), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.TryProcessAsync(command.EventId), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.ReleaseAsync(command.EventId), Times.Never);
         }
 
         [Fact]
@@ -68,7 +66,7 @@ namespace Fcg.Notification.Application.Tests.UseCase.ApprovedPaymentEmail
         {
             // Arrange
             var command = new SendPaymentApprovedEmailCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Teste", "teste@teste.com", DateTime.UtcNow);
-            _idempotencyServiceMock.Setup(s => s.HasBeenProcessedAsync(command.EventId)).ReturnsAsync(false);
+            _idempotencyServiceMock.Setup(s => s.TryProcessAsync(command.EventId)).ReturnsAsync(true);
             
             _emailServiceMock.Setup(e => e.SendEmailAsync(It.IsAny<EmailAddress>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("SMTP Timeout"));
@@ -78,7 +76,8 @@ namespace Fcg.Notification.Application.Tests.UseCase.ApprovedPaymentEmail
 
             // Assert
             await act.Should().ThrowAsync<Exception>().WithMessage("SMTP Timeout");
-            _idempotencyServiceMock.Verify(s => s.MarkAsProcessedAsync(It.IsAny<Guid>()), Times.Never);
+            _idempotencyServiceMock.Verify(s => s.TryProcessAsync(command.EventId), Times.Once);
+            _idempotencyServiceMock.Verify(s => s.ReleaseAsync(command.EventId), Times.Once);
         }
     }
 }

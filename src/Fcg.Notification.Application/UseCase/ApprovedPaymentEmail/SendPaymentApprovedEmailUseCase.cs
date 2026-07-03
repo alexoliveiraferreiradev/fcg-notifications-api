@@ -19,29 +19,26 @@ namespace Fcg.Notification.Application.UseCase.ApprovedPaymentEmail
 
         public async Task ExecuteAsync(SendPaymentApprovedEmailCommand command, CancellationToken cancellationToken)
         {
-            if (await _idempotencyService.HasBeenProcessedAsync(command.EventId))
+            if (!await _idempotencyService.TryProcessAsync(command.EventId))
                 return;
-
-                var emailRecipient = EmailAddress.Create(command.Email);
-
-                var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.OrderConfirmation);
 
             try
             {
-                var subject = $"Pagamento aprovado com sucesso para o pedido {command.OrderId}!";
-                var body = $"Olá {command.NomeUsuario}, o seu pagamento foi aprovado com sucesso." +
-                           $"ID do Usuário: {command.UsuarioId}" +
-                           $"Data Aquisição: {command.DataAquisicao}";
 
-                await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
+            var emailRecipient = EmailAddress.Create(command.Email);
 
-                notification.MarkAsSent();
 
-                await _idempotencyService.MarkAsProcessedAsync(command.EventId);
+            var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.OrderConfirmation);
+
+            var (subject, body) = notification.GenerateOrderConfirmationContent(command.OrderId, command.UserName,command.CreatedAt);
+
+            await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
+          
             }
-            catch (Exception ex)
+            catch
             {
-                notification.MarkAsFailure(ex.Message);
+                await _idempotencyService.ReleaseAsync(command.EventId);
+
                 throw;
             }
         }
