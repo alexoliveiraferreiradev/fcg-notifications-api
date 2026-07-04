@@ -13,7 +13,7 @@ app.MapHealthChecks("/health/liveness", new HealthCheckOptions
     Predicate = _ => false
 });
 
-// Readiness: Testa tudo (Redis + RabbitMQ).
+
 app.MapHealthChecks("/health/readiness", new HealthCheckOptions
 {
     Predicate = _ => true
