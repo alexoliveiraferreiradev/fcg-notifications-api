@@ -6,9 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Fcg.Core.Abstractions" Version="1.0.8" />
-    <PackageReference Include="Fcg.Core.WebApi" Version="1.0.0" />
+  <ItemGroup>    
+    <PackageReference Include="Fcg.Core.WebApi" Version="1.0.3" />
     <PackageReference Include="MassTransit.Abstractions" Version="9.1.2" />
   </ItemGroup>
 
