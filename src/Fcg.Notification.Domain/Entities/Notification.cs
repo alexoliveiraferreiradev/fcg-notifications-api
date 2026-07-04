@@ -31,7 +31,24 @@ namespace Fcg.Notification.Domain.Entities
         {
             return (
                 $"Pagamento aprovado com sucesso para o pedido {orderId}!",
-                $"Olá {userName}, o seu pagamento foi aprovado com sucesso. ID do Usuário: {Recipient.Address} | Data Aquisição: {date}"
+                $"Olá {userName}, o seu pagamento foi aprovado com sucesso. Data Aquisição: {date}"
+            );
+        }
+
+        public (string Subject, string Body) GeneratePaymentRejectionContent(Guid orderId, string userName, string reason)
+        {
+            return (
+                $"Pagamento rejeitado para o pedido {orderId}.",
+                $"Olá {userName}, infelizmente o seu pagamento foi rejeitado. Motivo: {reason}"
+            );
+        }
+
+
+        public (string Subject, string Body) GenerateDeliveryFailedContent(Guid orderId, string userName)
+        {
+            return (
+                $"Falha na entrega do pedido {orderId}.",
+                $"Olá {userName}, infelizmente houve uma falha na entrega do seu pedido. O estorno já foi solicitado "
             );
         }
     }

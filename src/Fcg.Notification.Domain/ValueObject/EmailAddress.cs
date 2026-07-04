@@ -1,7 +1,6 @@
 ﻿using Fcg.Core.Abstractions.Common;
 using Fcg.Core.Abstractions.Common.Exceptions;
 using Fcg.Core.Abstractions.Resources;
-using System.Net.Mail;
 
 namespace Fcg.Notification.Domain.ValueObject
 {
