@@ -1,6 +1,5 @@
 ﻿using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
-using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
 using Fcg.Notification.Domain.Enum;
 using Fcg.Notification.Domain.ValueObject;
 
@@ -10,11 +9,14 @@ namespace Fcg.Notification.Application.UseCase.RejectPaymentEmail
     {
         private readonly IEmailService _emailService;
         private readonly IIdempotencyService _idempotencyService;
+        private readonly IUserProfileIntegrationService _userIntegrationService;
 
-        public SendPaymentRejectUseCase(IEmailService emailService, IIdempotencyService idempotencyService)
+        public SendPaymentRejectUseCase(IEmailService emailService, IIdempotencyService idempotencyService, 
+            IUserProfileIntegrationService userIntegrationService)
         {
             _emailService = emailService;
             _idempotencyService = idempotencyService;
+            _userIntegrationService = userIntegrationService;
         }
 
         public async Task ExecuteAsync(SendPaymentRejectCommand command, CancellationToken cancellationToken)
@@ -24,6 +26,7 @@ namespace Fcg.Notification.Application.UseCase.RejectPaymentEmail
 
             try
             {
+                
 
                 var emailRecipient = EmailAddress.Create(command.Email);
 
