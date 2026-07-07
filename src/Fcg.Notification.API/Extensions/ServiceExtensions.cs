@@ -1,6 +1,6 @@
-﻿using Fcg.Core.Abstractions.MessageContracts;
-using Fcg.Notification.API.Consumers;
+﻿using Fcg.Notification.API.Consumers;
 using Fcg.Notification.API.Consumers.RejectPaymentEmail;
+using Fcg.Notification.Application.Client;
 using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
 using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
@@ -20,7 +20,8 @@ namespace Fcg.Notification.API.Extensions
     {
         public static WebApplicationBuilder AddServicesExtensions(this WebApplicationBuilder builder)
         {
-            builder.SerilogExtension()
+            builder.InternalClientExtension()
+                .SerilogExtension()
                 .HealthCheckExtension()
                 .MassTransitExtension()
                 .RedisExtension()
@@ -33,11 +34,26 @@ namespace Fcg.Notification.API.Extensions
             name: "redis-healthcheck");
             return builder;
         }
+
+        private static WebApplicationBuilder InternalClientExtension(this WebApplicationBuilder builder)
+        {
+            builder.Services.AddHttpClient<IUserApiClient, UserApiClient>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["UserApi:BaseUrl"]);
+                client.Timeout = TimeSpan.FromSeconds(5);
+                client.DefaultRequestHeaders.Add("x-internal-api-key", builder.Configuration["InternalSecrets:ServiceApiKey"]);
+            });
+
+            return builder;
+        }
         private static WebApplicationBuilder SerilogExtension(this WebApplicationBuilder builder)
         {
             builder.Host.UseSerilog((context, configuration) =>
             {
                 configuration.ReadFrom.Configuration(context.Configuration);
+                configuration.MinimumLevel.Information();
+                configuration.Filter.ByExcluding(logEvent => logEvent.Exception is HttpRequestException &&
+                logEvent.Exception.Message.Contains("Nenhuma conexão pôde ser feita"));
             });
 
             return builder;
@@ -49,6 +65,7 @@ namespace Fcg.Notification.API.Extensions
             builder.Services.AddScoped<SendPaymentRejectUseCase>();
             builder.Services.AddScoped<SendDeliveryFailedEmailUseCase>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IUserProfileIntegrationService, UserProfileIntegrationService>();
             builder.Services.AddScoped<IIdempotencyService, RedisIdempotencyService>();
             return builder;
         }

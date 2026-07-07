@@ -1,6 +1,5 @@
 ﻿using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
-using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
 using Fcg.Notification.Domain.Enum;
 using Fcg.Notification.Domain.ValueObject;
 
@@ -10,11 +9,14 @@ namespace Fcg.Notification.Application.UseCase.RejectPaymentEmail
     {
         private readonly IEmailService _emailService;
         private readonly IIdempotencyService _idempotencyService;
+        private readonly IUserProfileIntegrationService _userIntegrationService;
 
-        public SendPaymentRejectUseCase(IEmailService emailService, IIdempotencyService idempotencyService)
+        public SendPaymentRejectUseCase(IEmailService emailService, IIdempotencyService idempotencyService, 
+            IUserProfileIntegrationService userIntegrationService)
         {
             _emailService = emailService;
             _idempotencyService = idempotencyService;
+            _userIntegrationService = userIntegrationService;
         }
 
         public async Task ExecuteAsync(SendPaymentRejectCommand command, CancellationToken cancellationToken)
@@ -24,13 +26,14 @@ namespace Fcg.Notification.Application.UseCase.RejectPaymentEmail
 
             try
             {
+                var userProfile = await _userIntegrationService.GetUserProfileAsync(command.UserId, cancellationToken);
 
-                var emailRecipient = EmailAddress.Create(command.Email);
+                var emailRecipient = EmailAddress.Create(userProfile.Email);
 
 
                 var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.OrderConfirmation);
 
-                var (subject, body) = notification.GeneratePaymentRejectionContent(command.OrderId, command.UserName, command.Reason);
+                var (subject, body) = notification.GeneratePaymentRejectionContent(command.OrderId, userProfile.UserName, command.Reason);
 
                 await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
 

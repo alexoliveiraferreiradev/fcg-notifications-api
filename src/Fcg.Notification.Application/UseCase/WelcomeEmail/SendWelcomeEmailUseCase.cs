@@ -2,6 +2,9 @@ using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
 using Fcg.Notification.Domain.Enum;
 using Fcg.Notification.Domain.ValueObject;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 {
@@ -9,11 +12,15 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
     {
         private readonly IEmailService _emailService;
         private readonly IIdempotencyService _idempotencyService;
-
-        public SendWelcomeEmailUseCase(IEmailService emailService, IIdempotencyService idempotencyService)
+        private readonly IDistributedCache _cache;
+        private readonly ILogger<SendWelcomeEmailUseCase> _logger;
+        public SendWelcomeEmailUseCase(IEmailService emailService, IIdempotencyService idempotencyService,
+            IDistributedCache cache, ILogger<SendWelcomeEmailUseCase> logger)
         {
             _emailService = emailService;
             _idempotencyService = idempotencyService;
+            _cache = cache;
+            _logger = logger;
         }
 
         public async Task ExecuteAsync(SendWelcomeEmailCommand command, CancellationToken cancellationToken)
@@ -23,13 +30,20 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 
             try
             {
+                var userData = new { command.UserName, command.Email };
+                var json = JsonSerializer.Serialize(userData);
+                var cacheKey = $"user:{command.UserId}:profile";
 
-            var emailRecipient = EmailAddress.Create(command.Email);
-            var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
+                await _cache.SetStringAsync(cacheKey,json, cancellationToken);
 
-            var (subject, body) = notification.GenerateWelcomeContent(command.UserName);
-         
-            await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
+                _logger.LogInformation("[NotificationsAPI] Perfil do usuário {UserId} cacheado com sucesso.", command.UserId);
+
+                var emailRecipient = EmailAddress.Create(command.Email);
+                var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
+
+                var (subject, body) = notification.GenerateWelcomeContent(command.UserName);
+
+                await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
 
             }
             catch
