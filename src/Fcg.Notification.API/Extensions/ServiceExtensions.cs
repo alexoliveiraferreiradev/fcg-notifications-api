@@ -51,6 +51,9 @@ namespace Fcg.Notification.API.Extensions
             builder.Host.UseSerilog((context, configuration) =>
             {
                 configuration.ReadFrom.Configuration(context.Configuration);
+                configuration.MinimumLevel.Information();
+                configuration.Filter.ByExcluding(logEvent => logEvent.Exception is HttpRequestException &&
+                logEvent.Exception.Message.Contains("Nenhuma conexão pôde ser feita"));
             });
 
             return builder;
