@@ -1,6 +1,5 @@
 ﻿using Fcg.Core.Abstractions.MessageContracts;
 using Fcg.Notification.Application.UseCase.DeliveryFailedEmail;
-using Fcg.Notification.Application.UseCase.RejectPaymentEmail;
 using MassTransit;
 
 namespace Fcg.Notification.API.Consumers
@@ -19,7 +18,7 @@ namespace Fcg.Notification.API.Consumers
             var mensagem = context.Message;
 
             var command = new SendDeliveryFailedEmailCommand(context.MessageId ?? Guid.NewGuid(), OrderId: mensagem.OrderId,
-                  UserName: mensagem.NomeUsuario, Email: mensagem.EmailUsuario, Reason: mensagem.Reason);
+                 UserId: mensagem.UserId,Reason: mensagem.Reason);
 
             await _useCase.ExecuteAsync(command, context.CancellationToken);
         }

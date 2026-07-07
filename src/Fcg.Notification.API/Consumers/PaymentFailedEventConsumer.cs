@@ -18,7 +18,7 @@ namespace Fcg.Notification.API.Consumers.RejectPaymentEmail
             var mensagem = context.Message;
 
             var command = new SendPaymentRejectCommand(context.MessageId ?? Guid.NewGuid(), OrderId: mensagem.OrderId,
-                UserName: mensagem.NomeUsuario, Email: mensagem.EmailUsuario, Reason: mensagem.Reason);
+                UserId: mensagem.UserId,Reason: mensagem.Reason);
 
             await _useCase.ExecuteAsync(command, context.CancellationToken);
         }

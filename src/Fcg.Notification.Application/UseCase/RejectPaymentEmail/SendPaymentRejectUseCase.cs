@@ -26,14 +26,14 @@ namespace Fcg.Notification.Application.UseCase.RejectPaymentEmail
 
             try
             {
-                
+                var userProfile = await _userIntegrationService.GetUserProfileAsync(command.UserId, cancellationToken);
 
-                var emailRecipient = EmailAddress.Create(command.Email);
+                var emailRecipient = EmailAddress.Create(userProfile.Email);
 
 
                 var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.OrderConfirmation);
 
-                var (subject, body) = notification.GeneratePaymentRejectionContent(command.OrderId, command.UserName, command.Reason);
+                var (subject, body) = notification.GeneratePaymentRejectionContent(command.OrderId, userProfile.UserName, command.Reason);
 
                 await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
 

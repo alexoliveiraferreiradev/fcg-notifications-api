@@ -7,6 +7,6 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Fcg.Core.Abstractions" Version="1.0.12" />
+		<PackageReference Include="Fcg.Core.Abstractions" Version="1.0.13" />
 	</ItemGroup>
 </Project>
