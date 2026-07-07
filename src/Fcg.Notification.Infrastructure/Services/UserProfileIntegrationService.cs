@@ -29,7 +29,17 @@ namespace Fcg.Notification.Infrastructure.Services
             var profile = await _userApiClient.GetProfileAsync(userId, cancellationToken);
             if (profile == null) throw new DomainException(DomainMessages.UserNotFound);
 
-            await _cache.SetStringAsync(cacheKey,JsonSerializer.Serialize(profile),cancellationToken);
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromHours(2),
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+            };
+
+            await _cache.SetStringAsync(cacheKey,
+                JsonSerializer.Serialize(profile),
+                cacheOptions,
+                cancellationToken);
+
             return profile; 
         }
     }

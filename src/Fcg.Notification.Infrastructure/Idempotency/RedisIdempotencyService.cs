@@ -9,7 +9,7 @@ namespace Fcg.Notification.Infrastructure.Idempotency
     {
         private readonly IConnectionMultiplexer _redis;
         private readonly RedisOptions _redisOptions;
-        
+
         public RedisIdempotencyService(IConnectionMultiplexer redis, IOptions<RedisOptions> redisOptions)
         {
            _redis = redis;
@@ -19,14 +19,14 @@ namespace Fcg.Notification.Infrastructure.Idempotency
         public async Task ReleaseAsync(Guid eventId)
         {
             var db = _redis.GetDatabase();
-            var key = $"idempotency:notification:{eventId}";
+            var key = $"FiapCloudGames:idempotency:notification:on:{eventId}";
             await db.KeyDeleteAsync(key);
         }
 
         public async Task<bool> TryProcessAsync(Guid eventId)
         {
             var db = _redis.GetDatabase();
-            var key = $"idempotency:notification:{eventId}";
+            var key = $"FiapCloudGames:idempotency:notification:on:{eventId}";
             var expiry = TimeSpan.FromDays(_redisOptions.ExpirationInDays);
 
             bool isAcquired = await db.StringSetAsync(key, "processing_or_processed", expiry, When.NotExists);
