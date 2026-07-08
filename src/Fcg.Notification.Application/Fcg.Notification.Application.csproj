@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -8,7 +8,7 @@
 
   <ItemGroup>    
     <PackageReference Include="Fcg.Core.WebApi" Version="1.0.3" />
-    <PackageReference Include="MassTransit.Abstractions" Version="9.1.2" />
+    <PackageReference Include="MassTransit.Abstractions" Version="8.4.1" />
   </ItemGroup>
 
   <ItemGroup>
