@@ -10,12 +10,10 @@ namespace Fcg.Notification.Infrastructure.Services
     public class UserProfileIntegrationService : IUserProfileIntegrationService
     {
         private readonly IDistributedCache _cache;
-        private readonly IUserApiClient _userApiClient;
 
-        public UserProfileIntegrationService(IDistributedCache cache, IUserApiClient userApiClient)
+        public UserProfileIntegrationService(IDistributedCache cache)
         {
             _cache = cache;
-            _userApiClient = userApiClient;
         }
 
         public async Task<UserProfileCacheModel> GetUserProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -25,22 +23,8 @@ namespace Fcg.Notification.Infrastructure.Services
 
             if (!string.IsNullOrEmpty(cached))
                 return JsonSerializer.Deserialize<UserProfileCacheModel>(cached);
-
-            var profile = await _userApiClient.GetProfileAsync(userId, cancellationToken);
-            if (profile == null) throw new DomainException(DomainMessages.UserNotFound);
-
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                SlidingExpiration = TimeSpan.FromHours(2),
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
-            };
-
-            await _cache.SetStringAsync(cacheKey,
-                JsonSerializer.Serialize(profile),
-                cacheOptions,
-                cancellationToken);
-
-            return profile; 
+            else
+                throw new DomainException(DomainMessages.UserNotFound);
         }
     }
 }
