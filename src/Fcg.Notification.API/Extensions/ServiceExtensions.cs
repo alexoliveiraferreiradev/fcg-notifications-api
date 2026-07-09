@@ -1,6 +1,5 @@
 ﻿using Fcg.Notification.API.Consumers;
 using Fcg.Notification.API.Consumers.RejectPaymentEmail;
-using Fcg.Notification.Application.Client;
 using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
 using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
@@ -20,7 +19,7 @@ namespace Fcg.Notification.API.Extensions
     {
         public static WebApplicationBuilder AddServicesExtensions(this WebApplicationBuilder builder)
         {
-            builder.InternalClientExtension()
+            builder
                 .SerilogExtension()
                 .HealthCheckExtension()
                 .MassTransitExtension()
@@ -35,17 +34,6 @@ namespace Fcg.Notification.API.Extensions
             return builder;
         }
 
-        private static WebApplicationBuilder InternalClientExtension(this WebApplicationBuilder builder)
-        {
-            builder.Services.AddHttpClient<IUserApiClient, UserApiClient>(client =>
-            {
-                client.BaseAddress = new Uri(builder.Configuration["UserApi:BaseUrl"]);
-                client.Timeout = TimeSpan.FromSeconds(5);
-                client.DefaultRequestHeaders.Add("x-internal-api-key", builder.Configuration["InternalSecrets:ServiceApiKey"]);
-            });
-
-            return builder;
-        }
         private static WebApplicationBuilder SerilogExtension(this WebApplicationBuilder builder)
         {
             builder.Host.UseSerilog((context, configuration) =>
