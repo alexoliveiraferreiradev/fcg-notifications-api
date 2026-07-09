@@ -3,6 +3,8 @@ using Fcg.Notification.Application.Ports;
 using Fcg.Notification.Application.UseCase.WelcomeEmail;
 using Fcg.Notification.Domain.ValueObject;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Threading;
@@ -15,16 +17,22 @@ namespace Fcg.Notification.Application.Tests.UseCase.WelcomeEmail
     {
         private readonly Mock<IEmailService> _emailServiceMock;
         private readonly Mock<IIdempotencyService> _idempotencyServiceMock;
+        private readonly Mock<IDistributedCache> _cache;
         private readonly SendWelcomeEmailUseCase _useCase;
-
+        private readonly Mock<ILogger<SendWelcomeEmailUseCase>> _loggerMock;
         public SendWelcomeEmailUseCaseTests()
         {
             _emailServiceMock = new Mock<IEmailService>();
             _idempotencyServiceMock = new Mock<IIdempotencyService>();
+            _cache = new Mock<IDistributedCache>();
+            _loggerMock = new Mock<ILogger<SendWelcomeEmailUseCase>>();
 
             _useCase = new SendWelcomeEmailUseCase(
                 _emailServiceMock.Object,
-                _idempotencyServiceMock.Object
+                _idempotencyServiceMock.Object,
+                _cache.Object,
+                _loggerMock.Object
+
             );
         }
 
