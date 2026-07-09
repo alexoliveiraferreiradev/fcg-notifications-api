@@ -36,15 +36,17 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
                 var json = JsonSerializer.Serialize(userData);
                 var cacheKey = $"user:{command.UserId}:profile";
 
-                await _cache.SetStringAsync(cacheKey,json, cancellationToken);
+                await _cache.SetStringAsync(cacheKey, json, cancellationToken);
 
                 _logger.LogInformation("[NotificationsAPI] Perfil do usuário {UserId} cacheado com sucesso.", command.UserId);
 
                 var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
+                if (emailRecipient.Address != "admin@fiapcloudgames.com.br")
+                    return;
 
                 var (subject, body) = notification.GenerateWelcomeContent(command.UserName);
-
                 await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
+
 
             }
             catch
