@@ -30,6 +30,8 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 
             try
             {
+                var emailRecipient = EmailAddress.Create(command.Email);
+
                 var userData = new { command.UserName, command.Email };
                 var json = JsonSerializer.Serialize(userData);
                 var cacheKey = $"user:{command.UserId}:profile";
@@ -38,7 +40,6 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 
                 _logger.LogInformation("[NotificationsAPI] Perfil do usuário {UserId} cacheado com sucesso.", command.UserId);
 
-                var emailRecipient = EmailAddress.Create(command.Email);
                 var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
 
                 var (subject, body) = notification.GenerateWelcomeContent(command.UserName);
