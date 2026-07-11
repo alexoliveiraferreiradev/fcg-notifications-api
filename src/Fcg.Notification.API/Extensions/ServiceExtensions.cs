@@ -1,4 +1,4 @@
-﻿using Fcg.Core.Abstractions.Resources;
+using Fcg.Core.Abstractions.Resources;
 using Fcg.Notification.API.Consumers;
 using Fcg.Notification.API.Consumers.RejectPaymentEmail;
 using Fcg.Notification.Application.Common.Interfaces;
@@ -12,6 +12,7 @@ using Fcg.Notification.Infrastructure.Idempotency;
 using Fcg.Notification.Infrastructure.MessageBroker;
 using Fcg.Notification.Infrastructure.Services;
 using MassTransit;
+using RabbitMQ.Client;
 using Serilog;
 using StackExchange.Redis;
 
@@ -31,8 +32,19 @@ namespace Fcg.Notification.API.Extensions
         }
         private static WebApplicationBuilder HealthCheckExtension(this WebApplicationBuilder builder)
         {
-            builder.Services.AddHealthChecks().AddRedis(builder.Configuration.GetConnectionString("Redis"),
-            name: "redis-healthcheck");
+            var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMq")!;
+
+            builder.Services.AddSingleton<IConnectionFactory>(_ =>
+                new ConnectionFactory { Uri = new Uri(rabbitMqConnectionString) });
+
+            builder.Services.AddHealthChecks()
+                .AddRedis(
+                    builder.Configuration.GetConnectionString("Redis")!,
+                    name: "redis-healthcheck")
+                .AddRabbitMQ(
+                    sp => sp.GetRequiredService<IConnectionFactory>().CreateConnectionAsync(),
+                    name: "rabbitmq-healthcheck");
+
             return builder;
         }
 
