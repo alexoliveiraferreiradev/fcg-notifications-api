@@ -31,19 +31,11 @@ namespace Fcg.Notification.API.Extensions
             return builder;
         }
         private static WebApplicationBuilder HealthCheckExtension(this WebApplicationBuilder builder)
-        {
-            var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMq")!;
-
-            builder.Services.AddSingleton<IConnectionFactory>(_ =>
-                new ConnectionFactory { Uri = new Uri(rabbitMqConnectionString) });
-
+        {           
             builder.Services.AddHealthChecks()
                 .AddRedis(
                     builder.Configuration.GetConnectionString("Redis")!,
-                    name: "redis-healthcheck")
-                .AddRabbitMQ(
-                    sp => sp.GetRequiredService<IConnectionFactory>().CreateConnectionAsync(),
-                    name: "rabbitmq-healthcheck");
+                    name: "redis-healthcheck");
 
             return builder;
         }
