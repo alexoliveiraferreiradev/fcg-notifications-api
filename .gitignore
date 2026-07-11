@@ -411,5 +411,3 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp
 
-# Custom agent settings
-.agents/
