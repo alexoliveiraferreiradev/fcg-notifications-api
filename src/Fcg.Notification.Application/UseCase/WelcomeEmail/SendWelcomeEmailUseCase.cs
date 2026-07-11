@@ -42,11 +42,11 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 
                 var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
                 if (emailRecipient.Address != "admin@fiapcloudgames.com.br")
-                    return;
+                {
 
                 var (subject, body) = notification.GenerateWelcomeContent(command.UserName);
-                await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
-
+                    await _emailService.SendEmailAsync(notification.Recipient, subject, body, cancellationToken);
+                }
 
             }
             catch
