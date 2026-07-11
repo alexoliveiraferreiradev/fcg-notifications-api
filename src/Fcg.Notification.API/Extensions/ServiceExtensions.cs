@@ -1,4 +1,5 @@
-﻿using Fcg.Notification.API.Consumers;
+﻿using Fcg.Core.Abstractions.Resources;
+using Fcg.Notification.API.Consumers;
 using Fcg.Notification.API.Consumers.RejectPaymentEmail;
 using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
@@ -8,6 +9,7 @@ using Fcg.Notification.Application.UseCase.RejectPaymentEmail;
 using Fcg.Notification.Application.UseCase.WelcomeEmail;
 using Fcg.Notification.Infrastructure.Caching;
 using Fcg.Notification.Infrastructure.Idempotency;
+using Fcg.Notification.Infrastructure.MessageBroker;
 using Fcg.Notification.Infrastructure.Services;
 using MassTransit;
 using Serilog;
@@ -66,27 +68,33 @@ namespace Fcg.Notification.API.Extensions
                 x.AddConsumers(typeof(PaymentFailedEventConsumer).Assembly);
                 x.UsingRabbitMq((context, cfg) =>
                 {
+                    var rabbitMqQueuesSection = builder.Configuration.GetSection(RabbitMqQueuesOptions.SectionName);
+                    var options = rabbitMqQueuesSection.Get<RabbitMqQueuesOptions>();
+                    if (options == null || string.IsNullOrEmpty(options.NotificationUserCreatedQueue))
+                    {
+                        throw new Exception("Não foi configurado as queues para o rabbitmq");
+                    }
                     cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
                     cfg.UseMessageRetry(r =>
                     {
                         r.Interval(3, TimeSpan.FromSeconds(5));
                     });
-                    cfg.ReceiveEndpoint("notifications-user-created", e =>
+                    cfg.ReceiveEndpoint(options.NotificationUserCreatedQueue, e =>
                     {
                         e.ConfigureConsumer<UserCreatedEventConsumer>(context);
                     });
 
-                    cfg.ReceiveEndpoint("notifications-payment-failed", e =>
+                    cfg.ReceiveEndpoint(options.NotificationPaymentFailedQueue, e =>
                     {
                         e.ConfigureConsumer<PaymentFailedEventConsumer>(context);
                     });
 
-                    cfg.ReceiveEndpoint("notifications-payment-processed", e =>
+                    cfg.ReceiveEndpoint(options.NotificationPaymentProcessedQueue, e =>
                     {
                         e.ConfigureConsumer<PaymentProcessedEventConsumer>(context);
                     });
 
-                    cfg.ReceiveEndpoint("notification-delivery-failed", e =>
+                    cfg.ReceiveEndpoint(options.NotificationDeliveryFailedQueue, e =>
                     {
                         e.ConfigureConsumer<DeliveryFailedEventConsumer>(context);
                     });
