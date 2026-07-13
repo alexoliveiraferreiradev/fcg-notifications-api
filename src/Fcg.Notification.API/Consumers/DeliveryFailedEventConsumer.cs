@@ -1,4 +1,4 @@
-﻿using Fcg.Core.Abstractions.MessageContracts;
+﻿using Fcg.Core.SharedContracts.MessageContracts;
 using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.UseCase.DeliveryFailedEmail;
 using MassTransit;
@@ -17,9 +17,12 @@ namespace Fcg.Notification.API.Consumers
         public async Task Consume(ConsumeContext<DeliveryFailedEvent> context)
         {
             var mensagem = context.Message;
-
-            var command = new SendDeliveryFailedEmailCommand(context.MessageId ?? Guid.NewGuid(), OrderId: mensagem.OrderId,
-                 UserId: mensagem.UserId,Reason: mensagem.Reason);
+            
+            var command = new SendDeliveryFailedEmailCommand(
+                EventId: mensagem.EventId, 
+                OrderId: mensagem.OrderId,
+                UserId: mensagem.UserId,
+                Reason: mensagem.Reason);
 
             await _sendDeliveryFailedEmailUseCase.ExecuteAsync(command, context.CancellationToken);
         }
