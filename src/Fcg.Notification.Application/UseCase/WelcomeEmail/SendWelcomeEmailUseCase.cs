@@ -1,4 +1,4 @@
-using Fcg.Notification.Application.Common.Interfaces;
+﻿using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.Ports;
 using Fcg.Notification.Domain.Enum;
 using Fcg.Notification.Domain.ValueObject;
@@ -38,7 +38,7 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 
                 await _cache.SetStringAsync(cacheKey, json, cancellationToken);
 
-                _logger.LogInformation("[NotificationsAPI] Perfil do usu�rio {UserId} cacheado com sucesso.", command.UserId);
+                _logger.LogInformation("[NotificationsAPI] Perfil do usuário {UserId} cacheado com sucesso.", command.UserId);
 
                 var notification = new Domain.Entities.Notification(emailRecipient, NotificationType.Welcome);
                 if (emailRecipient.Address != "admin@fiapcloudgames.com.br")
@@ -58,3 +58,4 @@ namespace Fcg.Notification.Application.UseCase.WelcomeEmail
         }
     }
 }
+
