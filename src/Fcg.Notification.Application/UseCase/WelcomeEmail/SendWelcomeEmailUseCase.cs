@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace Fcg.Notification.Application.UseCase.WelcomeEmail
 {
-    public class SendWelcomeEmailUseCase
+    public class SendWelcomeEmailUseCase : ISendWelcomeEmailUseCase
     {
         private readonly IEmailService _emailService;
         private readonly IIdempotencyService _idempotencyService;
