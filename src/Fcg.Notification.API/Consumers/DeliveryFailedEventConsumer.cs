@@ -1,4 +1,5 @@
 ﻿using Fcg.Core.Abstractions.MessageContracts;
+using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.UseCase.DeliveryFailedEmail;
 using MassTransit;
 
@@ -6,11 +7,11 @@ namespace Fcg.Notification.API.Consumers
 {
     public class DeliveryFailedEventConsumer : IConsumer<DeliveryFailedEvent>
     {
-        private readonly SendDeliveryFailedEmailUseCase _useCase;
+        private readonly ISendDeliveryFailedEmailUseCase _sendDeliveryFailedEmailUseCase;
 
-        public DeliveryFailedEventConsumer(SendDeliveryFailedEmailUseCase useCase)
+        public DeliveryFailedEventConsumer(ISendDeliveryFailedEmailUseCase sendDeliveryFailedEmailUseCase)
         {
-            _useCase = useCase;
+            _sendDeliveryFailedEmailUseCase = sendDeliveryFailedEmailUseCase;
         }
 
         public async Task Consume(ConsumeContext<DeliveryFailedEvent> context)
@@ -20,7 +21,7 @@ namespace Fcg.Notification.API.Consumers
             var command = new SendDeliveryFailedEmailCommand(context.MessageId ?? Guid.NewGuid(), OrderId: mensagem.OrderId,
                  UserId: mensagem.UserId,Reason: mensagem.Reason);
 
-            await _useCase.ExecuteAsync(command, context.CancellationToken);
+            await _sendDeliveryFailedEmailUseCase.ExecuteAsync(command, context.CancellationToken);
         }
     }
 }

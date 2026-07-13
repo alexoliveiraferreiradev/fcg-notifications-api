@@ -1,5 +1,5 @@
-using Fcg.Core.Abstractions.Enum;
 using Fcg.Core.Abstractions.MessageContracts;
+using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.UseCase.ApprovedPaymentEmail;
 using MassTransit;
 
@@ -7,11 +7,11 @@ namespace Fcg.Notification.API.Consumers
 {
     public class PaymentProcessedEventConsumer : IConsumer<PaymentProcessedEvent>
     {
-        private readonly SendPaymentApprovedEmailUseCase _useCase;
+        private readonly ISendPaymentApprovedEmailUseCase _sendPaymentApprovedEmailUseCase;
 
-        public PaymentProcessedEventConsumer(SendPaymentApprovedEmailUseCase useCase)
+        public PaymentProcessedEventConsumer(ISendPaymentApprovedEmailUseCase sendPaymentApprovedEmailUseCase)
         {
-            _useCase = useCase; 
+            _sendPaymentApprovedEmailUseCase = sendPaymentApprovedEmailUseCase;
         }
 
         public async Task Consume(ConsumeContext<PaymentProcessedEvent> context)
@@ -21,7 +21,7 @@ namespace Fcg.Notification.API.Consumers
             var command = new SendPaymentApprovedEmailCommand(context.MessageId ?? Guid.NewGuid(),UsuarioId: mensagem.UserId,
                 OrderId: mensagem.OrderId,CreatedAt: mensagem.CreatedAt);
 
-            await _useCase.ExecuteAsync(command,context.CancellationToken);
+            await _sendPaymentApprovedEmailUseCase.ExecuteAsync(command,context.CancellationToken);
         }
     }
 }

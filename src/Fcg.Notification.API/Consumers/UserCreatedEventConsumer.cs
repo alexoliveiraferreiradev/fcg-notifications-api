@@ -1,4 +1,5 @@
 ﻿using Fcg.Core.Abstractions.MessageContracts;
+using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.UseCase.WelcomeEmail;
 using MassTransit;
 
@@ -6,11 +7,11 @@ namespace Fcg.Notification.API.Consumers
 {
     public class UserCreatedEventConsumer : IConsumer<UserCreatedEvent>
     {
-        private readonly SendWelcomeEmailUseCase _useCase;
+        private readonly ISendWelcomeEmailUseCase _sendWelcomeEmailUseCase;
 
-        public UserCreatedEventConsumer(SendWelcomeEmailUseCase useCase)
+        public UserCreatedEventConsumer(ISendWelcomeEmailUseCase sendWelcomeEmailUseCase)
         {
-            _useCase = useCase; 
+            _sendWelcomeEmailUseCase = sendWelcomeEmailUseCase;
         }
 
         public async Task Consume(ConsumeContext<UserCreatedEvent> context)
@@ -21,7 +22,7 @@ namespace Fcg.Notification.API.Consumers
                 EventId: context.MessageId ?? Guid.NewGuid(),
                 mensagem.UserId, mensagem.Email, mensagem.Name);
 
-            await _useCase.ExecuteAsync(command,context.CancellationToken);   
+            await _sendWelcomeEmailUseCase.ExecuteAsync(command,context.CancellationToken);   
         }
     }
 }

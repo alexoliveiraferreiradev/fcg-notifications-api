@@ -54,10 +54,10 @@ namespace Fcg.Notification.API.Extensions
         }
         private static WebApplicationBuilder DependecyInjectionExtension(this WebApplicationBuilder builder)
         {
-            builder.Services.AddScoped<SendPaymentApprovedEmailUseCase>();
-            builder.Services.AddScoped<SendWelcomeEmailUseCase>();
-            builder.Services.AddScoped<SendPaymentRejectUseCase>();
-            builder.Services.AddScoped<SendDeliveryFailedEmailUseCase>();
+            builder.Services.AddScoped<ISendPaymentApprovedEmailUseCase,SendPaymentApprovedEmailUseCase>();
+            builder.Services.AddScoped<ISendWelcomeEmailUseCase,SendWelcomeEmailUseCase>();
+            builder.Services.AddScoped<ISendPaymentRejectUseCase,SendPaymentRejectUseCase>();
+            builder.Services.AddScoped<ISendDeliveryFailedEmailUseCase,SendDeliveryFailedEmailUseCase>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IUserProfileIntegrationService, UserProfileIntegrationService>();
             builder.Services.AddScoped<IIdempotencyService, RedisIdempotencyService>();

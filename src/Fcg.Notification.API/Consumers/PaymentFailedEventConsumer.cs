@@ -1,4 +1,5 @@
 ﻿using Fcg.Core.Abstractions.MessageContracts;
+using Fcg.Notification.Application.Common.Interfaces;
 using Fcg.Notification.Application.UseCase.RejectPaymentEmail;
 using MassTransit;
 
@@ -6,11 +7,11 @@ namespace Fcg.Notification.API.Consumers.RejectPaymentEmail
 {
     public class PaymentFailedEventConsumer : IConsumer<PaymentFailedEvent>
     {
-        private readonly SendPaymentRejectUseCase _useCase;
+        private readonly ISendPaymentRejectUseCase _sendPaymentRejectUseCase;
 
-        public PaymentFailedEventConsumer(SendPaymentRejectUseCase useCase)
+        public PaymentFailedEventConsumer(ISendPaymentRejectUseCase sendPaymentRejectUseCase)
         {
-            _useCase = useCase;
+            _sendPaymentRejectUseCase = sendPaymentRejectUseCase;
         }
 
         public async Task Consume(ConsumeContext<PaymentFailedEvent> context)
@@ -18,9 +19,9 @@ namespace Fcg.Notification.API.Consumers.RejectPaymentEmail
             var mensagem = context.Message;
 
             var command = new SendPaymentRejectCommand(context.MessageId ?? Guid.NewGuid(), OrderId: mensagem.OrderId,
-                UserId: mensagem.UserId,Reason: mensagem.Reason);
+                UserId: mensagem.UserId, Reason: mensagem.Reason);
 
-            await _useCase.ExecuteAsync(command, context.CancellationToken);
+            await _sendPaymentRejectUseCase.ExecuteAsync(command, context.CancellationToken);
         }
     }
 }
