@@ -5,7 +5,7 @@ using Fcg.Notification.Domain.ValueObject;
 
 namespace Fcg.Notification.Application.UseCase.DeliveryFailedEmail
 {
-    public class SendDeliveryFailedEmailUseCase 
+    public class SendDeliveryFailedEmailUseCase : ISendDeliveryFailedEmailUseCase
     {
         private readonly IEmailService _emailService;
         private readonly IIdempotencyService _idempotencyService;
