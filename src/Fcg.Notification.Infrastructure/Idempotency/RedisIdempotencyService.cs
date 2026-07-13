@@ -8,9 +8,9 @@ namespace Fcg.Notification.Infrastructure.Idempotency
     public class RedisIdempotencyService : IIdempotencyService
     {
         private readonly IConnectionMultiplexer _redis;
-        private readonly RedisOptions _redisOptions;
+        private readonly RedisSettings _redisOptions;
 
-        public RedisIdempotencyService(IConnectionMultiplexer redis, IOptions<RedisOptions> redisOptions)
+        public RedisIdempotencyService(IConnectionMultiplexer redis, IOptions<RedisSettings> redisOptions)
         {
            _redis = redis;
            _redisOptions = redisOptions.Value;

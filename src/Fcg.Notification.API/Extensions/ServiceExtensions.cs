@@ -12,6 +12,7 @@ using Fcg.Notification.Infrastructure.Idempotency;
 using Fcg.Notification.Infrastructure.MessageBroker;
 using Fcg.Notification.Infrastructure.Services;
 using MassTransit;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Serilog;
 using StackExchange.Redis;
@@ -66,42 +67,43 @@ namespace Fcg.Notification.API.Extensions
         }
         private static WebApplicationBuilder MassTransitExtension(this WebApplicationBuilder builder)
         {
-
+            builder.Services.AddOptions<RabbitMqSettings>().BindConfiguration(RabbitMqSettings.SectionName)
+           .ValidateDataAnnotations().ValidateOnStart();
             builder.Services.AddMassTransit(x =>
             {
-                builder.Services.AddOptions<RabbitMqQueuesOptions>().BindConfiguration(RabbitMqQueuesOptions.SectionName)
-                .ValidateDataAnnotations().ValidateOnStart();
-
                 x.AddConsumers(typeof(PaymentFailedEventConsumer).Assembly);
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    var options = builder.Configuration.GetSection(RabbitMqQueuesOptions.SectionName)
-                    .Get<RabbitMqQueuesOptions>()!;
-                    if (options == null || string.IsNullOrEmpty(options.NotificationUserCreatedQueue))
+                    var rabbitMqConfig = context.GetRequiredService<IOptions<RabbitMqSettings>>().Value;
+
+                    cfg.Host(rabbitMqConfig.Host, rabbitMqConfig.Port, "/", h =>
                     {
-                        throw new Exception("Não foi configurado as queues para o rabbitmq");
-                    }
-                    cfg.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+                        h.Username(rabbitMqConfig.Username);
+                        h.Password(rabbitMqConfig.Password);
+                    });
+
+
                     cfg.UseMessageRetry(r =>
                     {
                         r.Interval(3, TimeSpan.FromSeconds(5));
                     });
-                    cfg.ReceiveEndpoint(options.NotificationUserCreatedQueue, e =>
+
+                    cfg.ReceiveEndpoint(rabbitMqConfig.NotificationUserCreatedQueue, e =>
                     {
                         e.ConfigureConsumer<UserCreatedEventConsumer>(context);
                     });
 
-                    cfg.ReceiveEndpoint(options.NotificationPaymentFailedQueue, e =>
+                    cfg.ReceiveEndpoint(rabbitMqConfig.NotificationPaymentFailedQueue, e =>
                     {
                         e.ConfigureConsumer<PaymentFailedEventConsumer>(context);
                     });
 
-                    cfg.ReceiveEndpoint(options.NotificationPaymentProcessedQueue, e =>
+                    cfg.ReceiveEndpoint(rabbitMqConfig.NotificationPaymentProcessedQueue, e =>
                     {
                         e.ConfigureConsumer<PaymentProcessedEventConsumer>(context);
                     });
 
-                    cfg.ReceiveEndpoint(options.NotificationDeliveryFailedQueue, e =>
+                    cfg.ReceiveEndpoint(rabbitMqConfig.NotificationDeliveryFailedQueue, e =>
                     {
                         e.ConfigureConsumer<DeliveryFailedEventConsumer>(context);
                     });
@@ -112,17 +114,27 @@ namespace Fcg.Notification.API.Extensions
         }
         private static WebApplicationBuilder RedisExtension(this WebApplicationBuilder builder)
         {
-            var redisSection = builder.Configuration.GetSection("Redis");
-            builder.Services.Configure<RedisOptions>(redisSection);
-            var redisConfig = redisSection.Get<RedisOptions>();
+            var redisConfig = builder.Configuration.GetSection(RedisSettings.RedisSectionName).Get<RedisSettings>();
+            ArgumentNullException.ThrowIfNull(redisConfig, nameof(RedisSettings));
+            builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection(RedisSettings.RedisSectionName));
+
+            var configurationOptions = new ConfigurationOptions
+            {
+                EndPoints = { { redisConfig.Host, redisConfig.Port } },
+                Password = redisConfig.Password,
+                AbortOnConnectFail = false,
+                ConnectRetry = 5,
+                ReconnectRetryPolicy = new ExponentialRetry(5000, 30000)
+            };
+
             builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
-                var configuration = ConfigurationOptions.Parse(redisConfig.Configuration, true);
-                return ConnectionMultiplexer.Connect(configuration);
+                return ConnectionMultiplexer.Connect(configurationOptions);
             });
+
             builder.Services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = redisConfig.Configuration;
+                options.ConfigurationOptions = configurationOptions;
                 options.InstanceName = redisConfig.InstanceName;
             });
             return builder;
