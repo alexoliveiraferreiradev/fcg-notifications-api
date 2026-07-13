@@ -7,8 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>    
-    <PackageReference Include="Fcg.Core.WebApi" Version="1.0.3" />
+    <PackageReference Include="Fcg.Core.SharedContracts" Version="1.0.0" />    
     <PackageReference Include="MassTransit.Abstractions" Version="8.4.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.17" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.15" />
   </ItemGroup>
 
   <ItemGroup>

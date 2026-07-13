@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Fcg.Core.Abstractions" Version="1.0.15" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Fcg.Core.Abstractions" Version="1.0.0" />
+  </ItemGroup>
 </Project>

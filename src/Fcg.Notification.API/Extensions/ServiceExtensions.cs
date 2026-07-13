@@ -35,7 +35,8 @@ namespace Fcg.Notification.API.Extensions
             builder.Services.AddHealthChecks()
                 .AddRedis(
                     builder.Configuration.GetConnectionString("Redis")!,
-                    name: "redis-healthcheck");
+                    name: "redis-healthcheck",
+                    tags: new[] {"ready"});
 
             return builder;
         }

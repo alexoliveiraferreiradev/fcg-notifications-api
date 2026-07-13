@@ -10,12 +10,12 @@ var app = builder.Build();
 app.UseSerilogRequestLogging(); 
 app.MapHealthChecks("/health/liveness", new HealthCheckOptions
 {
-    Predicate = _ => false
+    Predicate = check => check.Tags.Contains("live")
 });
 
 
 app.MapHealthChecks("/health/readiness", new HealthCheckOptions
 {
-    Predicate = _ => true
+    Predicate = check => check.Tags.Contains("ready")
 });
 app.Run();

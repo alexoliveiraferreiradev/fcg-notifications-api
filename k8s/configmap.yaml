@@ -13,3 +13,4 @@ data:
   REDIS_PORT: "6379" 
   REDIS_NAME: "FiapCloudGames:" 
   ENVIRONMENT: "Development"
+  MASSTRANSIT_USAGE_TELEMETRY: "false"

@@ -10,15 +10,13 @@ ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
 
-COPY ["nuget.config", "."]
+
 
 COPY ["src/Fcg.Notification.API/Fcg.Notification.API.csproj", "Fcg.Notification.API/"]
 COPY ["src/Fcg.Notification.Application/Fcg.Notification.Application.csproj", "Fcg.Notification.Application/"]
 COPY ["src/Fcg.Notification.Domain/Fcg.Notification.Domain.csproj", "Fcg.Notification.Domain/"]
 COPY ["src/Fcg.Notification.Infrastructure/Fcg.Notification.Infrastructure.csproj", "Fcg.Notification.Infrastructure/"]
-RUN --mount=type=secret,id=github_token \
-    export GITHUB_TOKEN=$(cat /run/secrets/github_token) && \
-    dotnet restore "./Fcg.Notification.API/Fcg.Notification.API.csproj"
+RUN dotnet restore "./Fcg.Notification.API/Fcg.Notification.API.csproj"
 
 
 COPY src/ .

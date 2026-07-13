@@ -15,7 +15,7 @@ spec:
         app: fcg-notification-api
       annotations:
         autor: Alex O Ferreira
-        description: "Deployment do microsservico de Catalogo API do Fiap Cloud Games"
+        description: "Deployment do microsservico de Notificações API do Fiap Cloud Games"
     spec:      
       containers:
       - name: c-fcg-notifications-api
@@ -36,12 +36,12 @@ spec:
           - name: K8S_NOTIFICATION_USER_CREATED_QUEUE
             valueFrom:
               configMapKeyRef:
-                name: catalog-config
+                name: notification-config
                 key: NOTIFICATION_USER_CREATED_QUEUE
           - name: K8S_NOTIFICATION_PAYMENT_FAILED_QUEUE
             valueFrom:
               configMapKeyRef:
-                name: catalog-config
+                name: notification-config
                 key: NOTIFICATION_PAYMENT_FAILED_QUEUE
           - name: K8S_NOTIFICATION_PAYMENT_PROCESSED_QUEUE
             valueFrom:
@@ -68,6 +68,11 @@ spec:
               configMapKeyRef:
                 name: notification-config
                 key: REDIS_NAME
+          - name: K8S_MASSTELEMETRY
+            valueFrom:
+              configMapKeyRef:
+                name: notification-config
+                key: MASSTRANSIT_USAGE_TELEMETRY
           - name: K8S_ENVIRONMENT
             valueFrom:
               configMapKeyRef:
@@ -114,5 +119,6 @@ spec:
           httpGet:
             path: /health/readiness
             port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 5
+          initialDelaySeconds: 30 
+          periodSeconds: 10
+          failureThreshold: 6
