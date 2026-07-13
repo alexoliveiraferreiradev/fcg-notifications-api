@@ -5,7 +5,7 @@ using Fcg.Notification.Domain.ValueObject;
 
 namespace Fcg.Notification.Application.UseCase.ApprovedPaymentEmail
 {
-    public class SendPaymentApprovedEmailUseCase
+    public class SendPaymentApprovedEmailUseCase : ISendPaymentApprovedEmailUseCase
     {
         private readonly IEmailService _emailService;
         private readonly IIdempotencyService _idempotencyService;
