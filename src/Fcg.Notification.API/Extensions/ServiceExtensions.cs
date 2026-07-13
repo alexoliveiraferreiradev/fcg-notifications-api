@@ -68,12 +68,14 @@ namespace Fcg.Notification.API.Extensions
 
             builder.Services.AddMassTransit(x =>
             {
+                builder.Services.AddOptions<RabbitMqQueuesOptions>().BindConfiguration(RabbitMqQueuesOptions.SectionName)
+                .ValidateDataAnnotations().ValidateOnStart();
 
                 x.AddConsumers(typeof(PaymentFailedEventConsumer).Assembly);
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    var rabbitMqQueuesSection = builder.Configuration.GetSection(RabbitMqQueuesOptions.SectionName);
-                    var options = rabbitMqQueuesSection.Get<RabbitMqQueuesOptions>();
+                    var options = builder.Configuration.GetSection(RabbitMqQueuesOptions.SectionName)
+                    .Get<RabbitMqQueuesOptions>()!;
                     if (options == null || string.IsNullOrEmpty(options.NotificationUserCreatedQueue))
                     {
                         throw new Exception("Não foi configurado as queues para o rabbitmq");
