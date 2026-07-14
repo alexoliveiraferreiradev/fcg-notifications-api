@@ -23,47 +23,52 @@ spec:
         ports:
         - containerPort: 8080
         env:
-          - name: K8S_RABBITMQ_SERVER
+          - name: RabbitMqSettings__Host
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: RABBITMQ_SERVER
-          - name: K8S_RABBITMQ_PORT
+          - name: RabbitMqSettings__Port
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: RABBITMQ_PORT
-          - name: K8S_NOTIFICATION_USER_CREATED_QUEUE
+          - name: RabbitMqSettings__NotificationUserCreatedQueue
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: NOTIFICATION_USER_CREATED_QUEUE
-          - name: K8S_NOTIFICATION_PAYMENT_FAILED_QUEUE
+          - name: RabbitMqSettings__NotificationPaymentFailedQueue
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: NOTIFICATION_PAYMENT_FAILED_QUEUE
-          - name: K8S_NOTIFICATION_PAYMENT_PROCESSED_QUEUE
+          - name: RabbitMqSettings__NotificationPaymentProcessedQueue
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: NOTIFICATION_PAYMENT_PROCESSED_QUEUE
-          - name: K8S_NOTIFICATION_DELIVERY_FAILED_QUEUE
+          - name: RabbitMqSettings__NotificationDeliveryFailedQueue
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: NOTIFICATION_DELIVERY_FAILED_QUEUE
-          - name: K8S_REDIS_SERVER
+          - name: RabbitMqSettings__Password
+            valueFrom:
+              secretKeyRef:
+                name: notification-opaque
+                key: RABBITMQ_PASS
+          - name: Redis__Host
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: REDIS_SERVER
-          - name: K8S_REDIS_PORT
+          - name: Redis__Port
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: REDIS_PORT
-          - name: K8S_REDIS_NAME
+          - name: Redis__InstanceName
             valueFrom:
               configMapKeyRef:
                 name: notification-config
@@ -73,42 +78,21 @@ spec:
               configMapKeyRef:
                 name: notification-config
                 key: MASSTRANSIT_USAGE_TELEMETRY
-          - name: K8S_ENVIRONMENT
+          - name: ASPNETCORE_ENVIRONMENT
             valueFrom:
               configMapKeyRef:
                 name: notification-config
                 key: ENVIRONMENT
-          - name: K8S_RABBITMQ_USER
+          - name: RabbitMqSettings__Username
             valueFrom:
               secretKeyRef:
                 name: notification-opaque
                 key: RABBITMQ_USER
-          - name: K8S_RABBITMQ_PASSWORD
+          - name: Redis__Password
             valueFrom:
               secretKeyRef:
                 name: notification-opaque
-                key: RABBITMQ_PASS
-          - name: K8S_REDIS_PASS
-            valueFrom:
-              secretKeyRef:
-                name: notification-opaque
-                key: REDIS_PASS
-          - name: "ConnectionStrings__RabbitMq"
-            value: "amqp://$(K8S_RABBITMQ_USER):$(K8S_RABBITMQ_PASSWORD)@$(K8S_RABBITMQ_SERVER):$(K8S_RABBITMQ_PORT)"
-          - name: "RabbitMqQueues__NotificationUserCreatedQueue"
-            value: "$(K8S_NOTIFICATION_USER_CREATED_QUEUE)"
-          - name: "RabbitMqQueues__NotificationPaymentFailedQueue"
-            value: "$(K8S_NOTIFICATION_PAYMENT_FAILED_QUEUE)"
-          - name: "RabbitMqQueues__NotificationPaymentProcessedQueue"
-            value: "$(K8S_NOTIFICATION_PAYMENT_PROCESSED_QUEUE)"
-          - name : "RabbitMqQueues__NotificationDeliveryFailedQueue"
-            value: "$(K8S_NOTIFICATION_DELIVERY_FAILED_QUEUE)"
-          - name: "Redis__Configuration"  
-            value: "$(K8S_REDIS_SERVER):$(K8S_REDIS_PORT),password=$(K8S_REDIS_PASS),abortConnect=false"
-          - name: "Redis__InstanceName"  
-            value: "$(K8S_REDIS_NAME)"
-          - name: "ASPNETCORE_ENVIRONMENT"
-            value: "$(K8S_ENVIRONMENT)"
+                key: REDIS_PASS         
         livenessProbe:
           httpGet:
             path: /health/liveness
