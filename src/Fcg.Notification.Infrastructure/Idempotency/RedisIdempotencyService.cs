@@ -19,14 +19,14 @@ namespace Fcg.Notification.Infrastructure.Idempotency
         public async Task ReleaseAsync(Guid eventId)
         {
             var db = _redis.GetDatabase();
-            var key = $"FiapCloudGames:idempotency:notification:on:{eventId}";
+            var key = $"events:notification:on:{eventId}";
             await db.KeyDeleteAsync(key);
         }
 
         public async Task<bool> TryProcessAsync(Guid eventId)
         {
             var db = _redis.GetDatabase();
-            var key = $"FiapCloudGames:idempotency:notification:on:{eventId}";
+            var key = $"events:notification:on:{eventId}";
             var expiry = TimeSpan.FromDays(_redisOptions.ExpirationInDays);
 
             bool isAcquired = await db.StringSetAsync(key, "processing_or_processed", expiry, When.NotExists);
