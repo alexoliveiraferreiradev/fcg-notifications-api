@@ -8,7 +8,7 @@ Este microsserviço de suporte é responsável pelo **envio simulado de e-mails*
 
 A API faz uso das seguintes tecnologias e pacotes:
 
-- **.NET 8.0**: Plataforma de desenvolvimento principal.
+- **.NET 9.0**: Plataforma de desenvolvimento principal.
 - **MassTransit & RabbitMQ**: Biblioteca/Framework de mensageria para consumo assíncrona de eventos.
 - **Redis**: Armazenamento em cache e controle de idempotência para processamento de eventos.
 - **Serilog**: Para registro de logs estruturados (console e arquivos).
@@ -32,14 +32,23 @@ src/
 
 ## 📐 Fluxo de Integração e Eventos Consumidos
 
-O microsserviço atua como um *subscriber* assíncrono no RabbitMQ e reage aos seguintes eventos:
+O microsserviço atua como um *subscriber* assíncrono no RabbitMQ e reage aos seguintes eventos da arquitetura:
 
 1. **`UserCreatedEvent` (Cadastro de Usuário):** 
    - Publicado pelo `Users API` ao registrar uma nova conta.
    - O `Notifications API` consome o evento e simula o disparo de um e-mail de boas-vindas com as informações do novo usuário.
-2. **`PaymentProcessedEvent` (Processamento de Pagamento):**
-   - Publicado pelo `Payments API` ao finalizar o status da transação.
-   - Caso o pagamento seja aprovado (`Approved`), o `Notifications API` consome o evento e simula o disparo de um e-mail de confirmação de compra do jogo.
+
+2. **`PaymentProcessedEvent` (Pagamento Aprovado):**
+   - Publicado pelo `Payments API` ao aprovar e finalizar a transação financeira com sucesso.
+   - O `Notifications API` consome o evento e simula o disparo de um e-mail com o recibo e a confirmação de liberação do jogo.
+
+3. **`PaymentFailedEvent` (Pagamento Rejeitado):**
+   - Publicado pelo `Payments API` caso o pagamento seja recusado.
+   - O `Notifications API` consome o evento e alerta o usuário através de um e-mail simulado informando a falha do pedido.
+
+4. **`DeliveryFailedEvent` (Falha na Entrega do Jogo):**
+   - Publicado pelo `Catalog API` em caso de erro sistêmico ao tentar adicionar o jogo à biblioteca após um pagamento aprovado.
+   - O `Notifications API` consome o evento para disparar um e-mail de desculpas, notificando o estorno imediato do pagamento.
 
 ---
 
@@ -47,59 +56,34 @@ O microsserviço atua como um *subscriber* assíncrono no RabbitMQ e reage aos s
 
 Para o funcionamento correto da API de Notificações, certas variáveis de ambiente de banco de dados, mensageria e cache devem ser fornecidas dependendo do ambiente de execução.
 
-### 1. Execução Local Standalone (Desenvolvimento)
-Quando executada diretamente pela IDE ou linha de comando `dotnet run`, a API consome as configurações definidas no arquivo [appsettings.json](src/Fcg.Notification.API/appsettings.json) ou `appsettings.Development.json`:
-
 ```json
 {
-  "ConnectionStrings": {
-    "RabbitMq": "amqp://guest:guest@localhost:5672",
-    "Redis": "localhost:6379"
+  "RabbitMqSettings": {
+    "Host": "localhost",
+    "Port": "5672",
+    "Username": "guest",
+    "Password": "guest",
+    "NotificationUserCreatedQueue": "notifications-user-created",
+    "NotificationPaymentFailedQueue": "notifications-payment-failed",
+    "NotificationPaymentProcessedQueue": "notifications-payment-processed",
+    "NotificationDeliveryFailedQueue": "notification-delivery-failed"
+  },
+  "RedisSettings": {
+    "Host": "localhost",
+    "Port": "6379",
+    "Password": "SuaSenhaSegura",
+    "InstanceName": "FiapCloudGames:",
+    "ExpirationInDays": 3
   }
 }
 ```
 
 ---
 
-### 2. Execução via Docker Compose
-Ao rodar através do contêiner Docker configurado no repositório de orquestração (`fcg-infrastructure`), as seguintes variáveis de ambiente são injetadas no contêiner:
-
-| Variável | Valor Padrão/Exemplo | Descrição |
-| :--- | :--- | :--- |
-| `ASPNETCORE_ENVIRONMENT` | `Development` | Define o ambiente de execução da aplicação. |
-| `ConnectionStrings__RabbitMq` | `rabbitmq` | Host do RabbitMQ para consumo de eventos. |
-| `ConnectionStrings__Redis` | `redis:6379` | Host do cache Redis (usado para idempotência). |
-
----
-
-### 3. Execução no Kubernetes (ConfigMaps e Secrets)
-No Kubernetes, as configurações são abstraídas em manifestos separados para dados não-sensíveis (ConfigMaps) e dados sensíveis (Secrets):
-
-#### **ConfigMap: `notification-config`**
-Armazena dados não sensíveis configurados no arquivo [configmap.yaml](k8s/configmap.yaml):
-- `RABBITMQ_SERVER`: Nome do serviço DNS do RabbitMQ no cluster (Ex: `rabbitmq-service`).
-- `RABBITMQ_PORT`: Porta TCP do RabbitMQ (Ex: `"5672"`).
-- `NOTIFICATION_USER_CREATED_QUEUE`: Fila para evento de criação de usuário (Ex: `"notifications-user-created"`).
-- `NOTIFICATION_PAYMENT_FAILED_QUEUE`: Fila para falha de pagamentos (Ex: `"notifications-payment-failed"`).
-- `NOTIFICATION_PAYMENT_PROCESSED_QUEUE`: Fila para pagamento processado (Ex: `"notifications-payment-processed"`).
-- `NOTIFICATION_DELIVERY_FAILED_QUEUE`: Fila de falha de entrega (Ex: `"notification-delivery-failed"`).
-- `REDIS_SERVER`: Nome do serviço DNS do Redis (Ex: `redis-service`).
-- `REDIS_PORT`: Porta do cache Redis (Ex: `"6379"`).
-- `REDIS_NAME`: Prefixo/Name de identificador no Redis (Ex: `"FiapCloudGames:"`).
-- `ENVIRONMENT`: Variável `ASPNETCORE_ENVIRONMENT` (Ex: `"Development"`).
-
-#### **Secret: `notification-opaque`**
-Armazena credenciais confidenciais codificadas em Base64 configuradas no arquivo [secret.yaml](k8s/secret.yaml):
-- `RABBITMQ_USER`: Usuário do RabbitMQ (Ex: `guest` -> Base64 `Z3Vlc3Q=`).
-- `RABBITMQ_PASS`: Senha do RabbitMQ (Ex: `guest` -> Base64 `Z3Vlc3Q=`).
-- `REDIS_PASS`: Senha do banco de cache Redis (Ex: Base64 `VGVjaENoYWxsZW5nZUAyMDI2`).
-
----
-
 ## 🚀 Como Executar Localmente (Standalone)
 
 ### Pré-requisitos
-- SDK do [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0) instalado.
+- SDK do [.NET 9.0](https://dotnet.microsoft.com/download/dotnet/9.0) instalado.
 - RabbitMQ e Redis acessíveis.
 
 ### Comandos de Terminal
