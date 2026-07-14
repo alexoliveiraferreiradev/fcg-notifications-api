@@ -12,7 +12,7 @@ namespace Fcg.Notification.Infrastructure.MessageBroker
         public string Username { get; set; } = string.Empty;
         [Required]
         public string Password { get; set; } = string.Empty;
-        public const string SectionName = "RabbitMqQueues";
+        public const string SectionName = "RabbitMqSettings";
         [Required]
         public string NotificationUserCreatedQueue { get; set; } = string.Empty;
         [Required]
