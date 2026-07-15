@@ -33,9 +33,14 @@ namespace Fcg.Notification.API.Extensions
         }
         private static WebApplicationBuilder HealthCheckExtension(this WebApplicationBuilder builder)
         {           
+            var redisConfig = builder.Configuration.GetSection(RedisSettings.RedisSectionName).Get<RedisSettings>();
+            var connectionString = redisConfig != null && !string.IsNullOrEmpty(redisConfig.Host)
+                ? $"{redisConfig.Host}:{redisConfig.Port},password={redisConfig.Password}"
+                : builder.Configuration.GetConnectionString("Redis")!;
+
             builder.Services.AddHealthChecks()
                 .AddRedis(
-                    builder.Configuration.GetConnectionString("Redis")!,
+                    connectionString,
                     name: "redis-healthcheck",
                     tags: new[] {"ready"});
 
